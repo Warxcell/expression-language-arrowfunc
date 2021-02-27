@@ -420,39 +420,39 @@ class Parser extends SymfonyParser
         return $node;
     }
 
-    public function parsePostfixExpression($node): Node
+    public function parsePostfixExpression(Node $node)
     {
         $token = $this->stream->current;
-        while ($token->type === Token::PUNCTUATION_TYPE) {
+        while (Token::PUNCTUATION_TYPE == $token->type) {
             if ('.' === $token->value) {
                 $this->stream->next();
                 $token = $this->stream->current;
                 $this->stream->next();
 
                 if (
-                    $token->type !== Token::NAME_TYPE
+                    Token::NAME_TYPE !== $token->type
                     &&
                     // Operators like "not" and "matches" are valid method or property names,
-
+                    //
                     // In other words, besides NAME_TYPE, OPERATOR_TYPE could also be parsed as a property or method.
                     // This is because operators are processed by the lexer prior to names. So "not" in "foo.not()" or "matches" in "foo.matches" will be recognized as an operator first.
                     // But in fact, "not" and "matches" in such expressions shall be parsed as method or property names.
-
+                    //
                     // And this ONLY works if the operator consists of valid characters for a property or method name.
-
+                    //
                     // Other types, such as STRING_TYPE and NUMBER_TYPE, can't be parsed as property nor method names.
-
+                    //
                     // As a result, if $token is NOT an operator OR $token->value is NOT a valid property or method name, an exception shall be thrown.
-                    ($token->type !== Token::OPERATOR_TYPE || !preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/A', $token->value))
+                    (Token::OPERATOR_TYPE !== $token->type || !preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/A', $token->value))
                 ) {
-                    throw new SyntaxError('Expected name', $token->cursor);
+                    throw new SyntaxError('Expected name.', $token->cursor, $this->stream->getExpression());
                 }
 
-                $arg = new NameNode($token->value);
+                $arg = new ConstantNode($token->value, true);
 
-                $arguments = new ArgumentsNode();
+                $arguments = new  ArgumentsNode();
                 if ($this->stream->current->test(Token::PUNCTUATION_TYPE, '(')) {
-                    $type = GetAttrNode::METHOD_CALL;
+                    $type = Node\GetAttrNode::METHOD_CALL;
                     foreach ($this->parseArguments()->nodes as $n) {
                         $arguments->addElement($n);
                     }
@@ -466,7 +466,7 @@ class Parser extends SymfonyParser
                 $arg = $this->parseExpression();
                 $this->stream->expect(Token::PUNCTUATION_TYPE, ']');
 
-                $node = new GetAttrNode($node, $arg, new ArgumentsNode(), GetAttrNode::ARRAY_CALL);
+                $node = new GetAttrNode($node, $arg, new Node\ArgumentsNode(), Node\GetAttrNode::ARRAY_CALL);
             } else {
                 break;
             }
