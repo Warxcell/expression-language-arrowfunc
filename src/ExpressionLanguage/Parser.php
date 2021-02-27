@@ -452,7 +452,7 @@ class Parser extends SymfonyParser
 
                 $arguments = new  ArgumentsNode();
                 if ($this->stream->current->test(Token::PUNCTUATION_TYPE, '(')) {
-                    $type = Node\GetAttrNode::METHOD_CALL;
+                    $type = GetAttrNode::METHOD_CALL;
                     foreach ($this->parseArguments()->nodes as $n) {
                         $arguments->addElement($n);
                     }
@@ -466,7 +466,7 @@ class Parser extends SymfonyParser
                 $arg = $this->parseExpression();
                 $this->stream->expect(Token::PUNCTUATION_TYPE, ']');
 
-                $node = new GetAttrNode($node, $arg, new Node\ArgumentsNode(), Node\GetAttrNode::ARRAY_CALL);
+                $node = new GetAttrNode($node, $arg, new ArgumentsNode(), GetAttrNode::ARRAY_CALL);
             } else {
                 break;
             }
